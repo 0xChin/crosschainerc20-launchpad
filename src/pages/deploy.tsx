@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -31,10 +31,12 @@ import {
   Alert,
   Link,
   CircularProgress,
+  Snackbar,
 } from '@mui/material';
+import { switchChain } from '@wagmi/core';
 import { parseEther } from 'viem';
-import { useAccount, useWaitForTransactionReceipt, useWriteContract, useChainId } from 'wagmi';
-import { interop, interop1 } from '../utils/config';
+import { useAccount, useWaitForTransactionReceipt, useWriteContract, useChainId, usePublicClient } from 'wagmi';
+import { interop, interop1, config } from '../utils/config';
 import { factoryAbi } from '../utils/factoryAbi';
 
 // Factory contract address
@@ -91,20 +93,90 @@ const DeployTokenPage = () => {
 
   // Contract interaction state
   const { data: hash, isPending, writeContract } = useWriteContract();
+  const publicClient = usePublicClient();
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   });
 
-  // Get the appropriate block explorer URL based on chain ID
-  const getExplorerUrl = (hash: `0x${string}`) => {
-    if (chainId === interop.id) {
-      return `${interop.blockExplorers.default.url}/tx/${hash}`;
-    } else if (chainId === interop1.id) {
-      return `${interop1.blockExplorers.default.url}/tx/${hash}`;
+  // For copy notification
+  const [copySnackbar, setCopySnackbar] = useState(false);
+
+  // Track deployments on both chains
+  const [deployments, setDeployments] = useState<{
+    [chainId: number]: {
+      hash: `0x${string}`;
+      confirmed: boolean;
+      contractAddress?: `0x${string}`;
+    };
+  }>({});
+
+  // Update deployments when transaction is confirmed
+  useEffect(() => {
+    if (hash && isConfirmed && chainId) {
+      // Get the contract address from receipt
+      const getContractAddress = async () => {
+        if (!publicClient) return;
+
+        try {
+          const receipt = await publicClient.getTransactionReceipt({ hash });
+          if (receipt?.contractAddress) {
+            setDeployments((prev) => ({
+              ...prev,
+              [chainId]: {
+                hash,
+                confirmed: true,
+                contractAddress: receipt.contractAddress as `0x${string}`,
+              },
+            }));
+          } else {
+            // If there's no contractAddress in the receipt, update with just hash and confirmed
+            setDeployments((prev) => ({
+              ...prev,
+              [chainId]: {
+                hash,
+                confirmed: true,
+              },
+            }));
+          }
+        } catch (error) {
+          console.error('Error getting contract address:', error);
+          setDeployments((prev) => ({
+            ...prev,
+            [chainId]: {
+              hash,
+              confirmed: true,
+            },
+          }));
+        }
+      };
+
+      getContractAddress();
     }
-    // Fallback to a default explorer if needed
-    return `https://optimism-interop-alpha-0.blockscout.com/tx/${hash}`;
+  }, [hash, isConfirmed, chainId, publicClient]);
+
+  // Handle copying text to clipboard
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopySnackbar(true);
+  };
+
+  // Get the other chain for cross-deployment
+  const getOtherChain = () => {
+    return chainId === interop.id ? interop1 : interop;
+  };
+
+  // Get the appropriate block explorer URL based on chain ID
+  const getExplorerUrl = (txHash: `0x${string}`, chainToUse?: number) => {
+    const currentChain = chainToUse || chainId;
+
+    if (currentChain === interop.id) {
+      return `${interop.blockExplorers.default.url}/tx/${txHash}`;
+    } else if (currentChain === interop1.id) {
+      return `${interop1.blockExplorers.default.url}/tx/${txHash}`;
+    }
+    // Fallback to a default explorer
+    return `https://optimism-interop-alpha-0.blockscout.com/tx/${txHash}`;
   };
 
   const handleSymbolChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,11 +326,65 @@ const DeployTokenPage = () => {
     }
   };
 
+  // Handle deploying on the other chain
+  const handleDeployOnOtherChain = async () => {
+    // Get the other chain
+    const otherChain = getOtherChain();
+
+    if (!validateBridgeConfig()) {
+      return;
+    }
+
+    try {
+      // First switch to the other chain
+      await switchChain(config, { chainId: otherChain.id });
+
+      // Prepare arrays for the contract call
+      const bridgeAddresses = bridges.map((bridge) => bridge.address as `0x${string}`);
+      const minterLimits = bridges.map((bridge) => (bridge.mintLimit ? parseEther(bridge.mintLimit) : BigInt(0)));
+      const burnerLimits = bridges.map((bridge) => (bridge.burnLimit ? parseEther(bridge.burnLimit) : BigInt(0)));
+
+      // Use the connected wallet address if owner is not specified
+      const owner = ownerAddress || address;
+
+      // Call the contract
+      writeContract({
+        address: FACTORY_ADDRESS,
+        abi: factoryAbi,
+        functionName: 'deployCrosschainERC20',
+        args: [
+          tokenName,
+          tokenSymbol,
+          parseInt(decimals),
+          minterLimits,
+          burnerLimits,
+          bridgeAddresses,
+          owner as `0x${string}`,
+        ],
+      });
+    } catch (error) {
+      console.error('Error deploying token on other chain:', error);
+      setErrors({ deployment: 'Error deploying token on other chain. Check console for details.' });
+    }
+  };
+
   // Show result message based on transaction status
   const renderTransactionStatus = () => {
-    if (!hash && !isPending && !isConfirming && !isConfirmed) {
+    const hasDeployments = Object.keys(deployments).length > 0;
+    const isDeployingCurrentChain = isPending || (hash && isConfirming);
+    const showStatus = hasDeployments || isDeployingCurrentChain;
+
+    if (!showStatus) {
       return null;
     }
+
+    // Determine if we've deployed on current and other chain
+    const deployedOnCurrentChain = deployments[chainId]?.confirmed;
+    const otherChain = getOtherChain();
+    const deployedOnOtherChain = deployments[otherChain.id]?.confirmed;
+
+    // Determine if we should show the deploy on other chain button
+    const showDeployOnOtherChain = deployedOnCurrentChain && !deployedOnOtherChain && !isPending && !isConfirming;
 
     return (
       <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid' }}>
@@ -266,44 +392,94 @@ const DeployTokenPage = () => {
           Deployment Status
         </Typography>
 
+        {/* Current transaction status */}
         {isPending && (
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <CircularProgress size={16} sx={{ mr: 1 }} />
-            <Typography>Submitting transaction...</Typography>
+            <Typography>Submitting transaction on {chainId === interop.id ? 'Interop 0' : 'Interop 1'}...</Typography>
           </Box>
         )}
 
-        {hash && (
-          <Box sx={{ mb: 1 }}>
-            <Typography variant='body2'>Transaction Hash:</Typography>
-            <Link
-              href={getExplorerUrl(hash)}
-              target='_blank'
-              rel='noopener noreferrer'
-              sx={{
-                display: 'block',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '100%',
-              }}
-            >
-              {hash}
-            </Link>
-          </Box>
-        )}
-
-        {isConfirming && (
+        {hash && isConfirming && (
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <CircularProgress size={16} sx={{ mr: 1 }} />
-            <Typography>Waiting for confirmation...</Typography>
+            <Typography>Waiting for confirmation on {chainId === interop.id ? 'Interop 0' : 'Interop 1'}...</Typography>
           </Box>
         )}
 
-        {isConfirmed && (
-          <Box sx={{ display: 'flex', alignItems: 'center', color: 'success.main' }}>
-            <CheckCircleIcon sx={{ mr: 1 }} />
-            <Typography>Transaction confirmed!</Typography>
+        {/* Show deployments for both chains */}
+        {Object.entries(deployments).map(([chainIdStr, { hash: txHash, confirmed, contractAddress }]) => {
+          const chainNumber = parseInt(chainIdStr);
+          const chainName = chainNumber === interop.id ? 'Interop 0' : 'Interop 1';
+
+          return (
+            <Box key={chainIdStr} sx={{ mb: 2, p: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+              <Typography variant='subtitle1' fontWeight='medium'>
+                {chainName} Deployment {confirmed ? '✓' : '(Pending)'}
+              </Typography>
+
+              {/* Transaction Hash */}
+              <Box sx={{ mb: 1, mt: 1 }}>
+                <Typography variant='body2'>Transaction Hash:</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Link
+                    href={getExplorerUrl(txHash, chainNumber)}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    sx={{
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      flexGrow: 1,
+                    }}
+                  >
+                    {txHash}
+                  </Link>
+                  <IconButton size='small' onClick={() => handleCopy(txHash)} sx={{ ml: 1 }}>
+                    <ContentCopyIcon fontSize='small' />
+                  </IconButton>
+                </Box>
+              </Box>
+
+              {/* Contract Address (if available) */}
+              {contractAddress && (
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant='body2'>Contract Address:</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Link
+                      href={`${getExplorerUrl(contractAddress, chainNumber).replace('/tx/', '/address/')}`}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      sx={{
+                        display: 'block',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        flexGrow: 1,
+                      }}
+                    >
+                      {contractAddress}
+                    </Link>
+                    <IconButton size='small' onClick={() => handleCopy(contractAddress)} sx={{ ml: 1 }}>
+                      <ContentCopyIcon fontSize='small' />
+                    </IconButton>
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          );
+        })}
+
+        {/* Option to deploy on other chain */}
+        {showDeployOnOtherChain && (
+          <Box sx={{ mt: 3 }}>
+            <Button variant='outlined' onClick={handleDeployOnOtherChain} sx={{ textTransform: 'none' }} fullWidth>
+              Deploy Same Token on {otherChain.id === interop.id ? 'Interop 0' : 'Interop 1'}
+            </Button>
+            <Typography variant='caption' sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+              This will deploy the same token configuration on the other chain
+            </Typography>
           </Box>
         )}
       </Box>
@@ -606,6 +782,15 @@ const DeployTokenPage = () => {
             </Button>
           </Box>
         </Paper>
+
+        {/* Copy to clipboard notification */}
+        <Snackbar
+          open={copySnackbar}
+          autoHideDuration={3000}
+          onClose={() => setCopySnackbar(false)}
+          message='Copied to clipboard'
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        />
       </Container>
     </>
   );
