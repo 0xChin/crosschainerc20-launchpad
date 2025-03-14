@@ -1,4 +1,7 @@
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import {
+  ThemeProvider as MuiThemeProvider,
+  Experimental_CssVarsProvider as CssVarsProvider,
+} from '@mui/material/styles';
 import { getConfig } from '~/config';
 
 interface StateProps {
@@ -8,5 +11,9 @@ interface StateProps {
 export const ThemeProvider = ({ children }: StateProps) => {
   const muiTheme = getConfig().customThemes.getMui;
 
-  return <MuiThemeProvider theme={muiTheme}>{children}</MuiThemeProvider>;
+  return (
+    <CssVarsProvider defaultMode='light' disableTransitionOnChange theme={muiTheme} modeStorageKey='app-theme-mode'>
+      <MuiThemeProvider theme={muiTheme}>{children}</MuiThemeProvider>
+    </CssVarsProvider>
+  );
 };

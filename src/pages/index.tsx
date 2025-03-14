@@ -5,7 +5,11 @@ const Home = () => {
   return (
     <>
       <Head>
-        <title>Web3 Boilerplate</title>
+        <title>CrosschainERC20 Launchpad | ERC-7281 and ERC-7802 Implementation</title>
+        <meta
+          name='description'
+          content='Deploy cross-chain compatible ERC20 tokens with ERC-7281 and ERC-7802 standards. Seamless cross-chain bridging capabilities.'
+        />
       </Head>
       <Landing />
     </>

@@ -1,40 +1,71 @@
-import { styled } from '@mui/material/styles';
-import { FOOTER_HEIGHT } from '~/utils';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import { styled, Box, Typography, IconButton, Container } from '@mui/material';
 
 export const Footer = () => {
   return (
     <FooterContainer>
-      <h1>Footer</h1>
-      <Subtitle>
-        <p>Made with 💜 by</p>
-        <a href='https://defi.sucks'>Wonderland</a>
-      </Subtitle>
+      <Container maxWidth='lg'>
+        <FooterContent>
+          <WonderlandLink>
+            Made with <Heart>♥</Heart> by{' '}
+            <StyledLink href='https://defi.sucks' target='_blank' rel='noopener noreferrer'>
+              Wonderland
+            </StyledLink>
+          </WonderlandLink>
+          <SocialLinks>
+            <IconButton
+              aria-label='GitHub'
+              href='https://github.com/crosschainERC20'
+              target='_blank'
+              rel='noopener noreferrer'
+              size='small'
+            >
+              <GitHubIcon fontSize='small' />
+            </IconButton>
+          </SocialLinks>
+        </FooterContent>
+      </Container>
     </FooterContainer>
   );
 };
 
-const FooterContainer = styled('footer')(({ theme }) => {
-  return {
-    display: 'flex',
-    height: `${FOOTER_HEIGHT}rem`,
-    padding: '0 8rem',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: theme.palette.background.secondary,
-    borderTop: theme.palette.border,
-    width: '100%',
-  };
+const FooterContainer = styled('footer')(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  padding: '1.5rem 0',
+  borderTop: `1px solid ${theme.palette.divider}`,
+  marginTop: 'auto',
+  width: '100%',
+}));
+
+const FooterContent = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
 });
 
-const Subtitle = styled('div')({
+const WonderlandLink = styled(Typography)({
+  color: '#666',
+  fontSize: '0.875rem',
   display: 'flex',
   alignItems: 'center',
-  gap: '0.8rem',
-  '& p': {
-    display: 'inline-block',
+  gap: '0.25rem',
+});
+
+const Heart = styled('span')({
+  color: '#ff0320',
+  fontSize: '0.875rem',
+});
+
+const StyledLink = styled('a')({
+  color: '#666',
+  textDecoration: 'none',
+  '&:hover': {
+    textDecoration: 'underline',
   },
-  '& a': {
-    textDecoration: 'none',
-    color: 'inherit',
-  },
+});
+
+const SocialLinks = styled(Box)({
+  display: 'flex',
+  gap: '0.5rem',
 });

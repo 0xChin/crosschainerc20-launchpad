@@ -1,49 +1,46 @@
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import { IconButton } from '@mui/material';
-import { styled, useColorScheme } from '@mui/material/styles';
+import { AppBar, Toolbar, Typography, styled, Box } from '@mui/material';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { zIndex, HEADER_HEIGHT } from '~/utils';
 
 export const Header = () => {
-  const { mode, setMode } = useColorScheme();
-
-  const changeTheme = () => {
-    setMode(mode === 'dark' ? 'light' : 'dark');
-  };
-
   return (
-    <StyledHeader>
-      <Logo>Logo</Logo>
-      <SIconButton onClick={changeTheme}>{mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}</SIconButton>
-      <ConnectButton />
-    </StyledHeader>
+    <StyledAppBar position='static' elevation={0}>
+      <StyledToolbar>
+        <LogoContainer>
+          <Typography variant='h6' component='div' fontWeight='bold' fontSize='1.1rem'>
+            CrosschainERC20 Launchpad
+          </Typography>
+        </LogoContainer>
+        <ConnectButtonWrapper>
+          <ConnectButton showBalance={false} chainStatus='icon' accountStatus='address' />
+        </ConnectButtonWrapper>
+      </StyledToolbar>
+    </StyledAppBar>
   );
 };
 
-//Styles
-const StyledHeader = styled('header')(({ theme }) => {
-  return [
-    {
-      display: 'flex',
-      height: `${HEADER_HEIGHT}rem`,
-      padding: '0 8rem',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: theme.palette.background.secondary,
-      width: '100%',
-      zIndex: zIndex.HEADER,
-    },
-  ];
+const StyledAppBar = styled(AppBar)({
+  backgroundColor: 'white',
+  color: 'black',
+  borderBottom: '1px solid #e0e0e0',
 });
 
-const Logo = styled('h1')({
-  fontSize: '1.5rem',
-  fontWeight: 'bold',
-  cursor: 'pointer',
+const StyledToolbar = styled(Toolbar)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  padding: '0.5rem 4rem',
+  width: '100%',
+  minHeight: '56px', // Making the header a bit more compact
 });
 
-const SIconButton = styled(IconButton)({
-  position: 'absolute',
-  left: '50%',
+const LogoContainer = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+});
+
+const ConnectButtonWrapper = styled(Box)({
+  // Custom styling for the RainbowKit ConnectButton
+  '& button': {
+    fontWeight: 'bold',
+    fontSize: '0.9rem',
+  },
 });

@@ -1,5 +1,15 @@
 import { CustomMuiTheme } from '~/types';
 
+// Brand colors
+const brandColors = {
+  primary: {
+    main: '#ff0320',
+    light: '#ff4d66',
+    dark: '#c50017',
+    contrastText: '#ffffff',
+  },
+};
+
 // const palette = {
 //    error: {
 //      main: '#BA6B5D',
@@ -24,10 +34,11 @@ const core = {
 };
 
 export const darkTheme = {
-  // ...palette,
+  ...brandColors,
   background: {
     default: '#000000',
     secondary: '#161616',
+    paper: '#121212',
   },
   text: {
     title: '#000000',
@@ -41,10 +52,11 @@ export const darkTheme = {
 };
 
 export const lightTheme = {
-  // ...palette,
+  ...brandColors,
   background: {
     default: '#ffffff',
     secondary: '#f8f8f8',
+    paper: '#ffffff',
   },
   text: {
     title: '#000000',
