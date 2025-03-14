@@ -1,0 +1,47 @@
+export const factoryAbi = [
+  { inputs: [], name: 'InvalidLength', type: 'error' },
+  {
+    inputs: [
+      { internalType: 'string', name: '_name', type: 'string' },
+      { internalType: 'string', name: '_symbol', type: 'string' },
+      { internalType: 'uint8', name: '_decimals', type: 'uint8' },
+      { internalType: 'uint256[]', name: '_minterLimits', type: 'uint256[]' },
+      { internalType: 'uint256[]', name: '_burnerLimits', type: 'uint256[]' },
+      { internalType: 'address[]', name: '_bridges', type: 'address[]' },
+      { internalType: 'address', name: '_owner', type: 'address' },
+    ],
+    name: 'deployCrosschainERC20',
+    outputs: [{ internalType: 'address', name: 'crosschainERC20_', type: 'address' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'string', name: '_name', type: 'string' },
+      { internalType: 'string', name: '_symbol', type: 'string' },
+      { internalType: 'uint8', name: '_decimals', type: 'uint8' },
+      { internalType: 'uint256[]', name: '_minterLimits', type: 'uint256[]' },
+      { internalType: 'uint256[]', name: '_burnerLimits', type: 'uint256[]' },
+      { internalType: 'address[]', name: '_bridges', type: 'address[]' },
+      { internalType: 'address', name: '_baseToken', type: 'address' },
+      { internalType: 'address', name: '_owner', type: 'address' },
+    ],
+    name: 'deployCrosschainERC20WithLockbox',
+    outputs: [
+      { internalType: 'address', name: 'crosschainERC20_', type: 'address' },
+      { internalType: 'address', name: 'crosschainERC20Lockbox_', type: 'address' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: '_xerc20', type: 'address' },
+      { internalType: 'address', name: '_bridge', type: 'address' },
+    ],
+    name: 'deployERC7802Adapter',
+    outputs: [{ internalType: 'address', name: 'erc7802Adapter_', type: 'address' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;

@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import LinkIcon from '@mui/icons-material/Link';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import TokenIcon from '@mui/icons-material/Token';
@@ -5,6 +6,12 @@ import { Button, Typography, Box, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 export const Landing = () => {
+  const router = useRouter();
+
+  const handleDeployClick = () => {
+    router.push('/deploy');
+  };
+
   return (
     <LandingContainer>
       <TitleSection>
@@ -27,7 +34,7 @@ export const Landing = () => {
           <Typography variant='body1' sx={{ mb: 4, fontSize: '0.95rem' }}>
             Launch your new token with cross-chain capabilities from the start
           </Typography>
-          <ActionButton variant='contained' fullWidth>
+          <ActionButton variant='contained' fullWidth onClick={handleDeployClick}>
             Get Started
           </ActionButton>
         </FeatureCard>
