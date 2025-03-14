@@ -1,12 +1,10 @@
 import { CssBaseline, styled } from '@mui/material';
-import { Disclaimer } from '~/components';
 import { Footer, Header } from '~/containers';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <CssBaseline />
-      <Disclaimer />
 
       <MainContent>
         <NoScriptMessage>
