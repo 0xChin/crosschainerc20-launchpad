@@ -33,10 +33,16 @@ import {
   CircularProgress,
   Snackbar,
 } from '@mui/material';
-import { switchChain } from '@wagmi/core';
 import { parseEther } from 'viem';
-import { useAccount, useWaitForTransactionReceipt, useWriteContract, useChainId, usePublicClient } from 'wagmi';
-import { interop, interop1, config } from '../utils/config';
+import {
+  useAccount,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+  useChainId,
+  usePublicClient,
+  useSwitchChain,
+} from 'wagmi';
+import { interop, interop1 } from '../utils/config';
 import { factoryAbi } from '../utils/factoryAbi';
 
 // Factory contract address
@@ -94,6 +100,7 @@ const DeployTokenPage = () => {
   // Contract interaction state
   const { data: hash, isPending, writeContract } = useWriteContract();
   const publicClient = usePublicClient();
+  const { switchChainAsync } = useSwitchChain();
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
@@ -337,7 +344,7 @@ const DeployTokenPage = () => {
 
     try {
       // First switch to the other chain
-      await switchChain(config, { chainId: otherChain.id });
+      await switchChainAsync({ chainId: otherChain.id });
 
       // Prepare arrays for the contract call
       const bridgeAddresses = bridges.map((bridge) => bridge.address as `0x${string}`);
