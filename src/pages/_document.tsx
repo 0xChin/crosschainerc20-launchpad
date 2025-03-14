@@ -3,7 +3,7 @@ import { DocumentHeadTags, documentGetInitialProps } from '@mui/material-nextjs/
 import type { DocumentHeadTagsProps } from '@mui/material-nextjs/v13-pagesRouter';
 
 export default function MyDocument(props: DocumentProps & DocumentHeadTagsProps) {
-  const descriptionText = 'Web3 Boilerplate by Wonderland.';
+  const descriptionText = 'CrosschainERC20 Launchpad by Wonderland.';
   const bannerImage = '';
 
   return (
@@ -13,14 +13,14 @@ export default function MyDocument(props: DocumentProps & DocumentHeadTagsProps)
         <link rel='icon' href='/favicon.ico' type='image/x-icon' sizes='48x48' />
         <meta name='description' content={descriptionText} />
 
-        <meta property='og:title' content='Web3 Boilerplate' />
+        <meta property='og:title' content='CrosschainERC20 Launchpad' />
         <meta property='og:description' content={descriptionText} />
         <meta name='twitter:image' content={bannerImage} />
 
         <meta name='twitter:card' content='summary_large_image' />
         <meta name='twitter:site' content='@DeFi_Wonderland' />
         <meta name='twitter:creator' content='@DeFi_Wonderland' />
-        <meta name='twitter:title' content='Web3 Boilerplate' />
+        <meta name='twitter:title' content='CrosschainERC20 Launchpad' />
         <meta name='twitter:description' content={descriptionText} />
 
         <meta name='twitter:image' content={bannerImage} />

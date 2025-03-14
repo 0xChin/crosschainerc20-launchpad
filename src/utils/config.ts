@@ -22,7 +22,7 @@ const connectors = connectorsForWallets(
     },
   ],
   {
-    appName: 'Web3 React boilerplate',
+    appName: 'CrosschainERC20 Launchpad',
     projectId: PROJECT_ID,
   },
 );
