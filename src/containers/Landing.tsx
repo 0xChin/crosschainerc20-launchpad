@@ -12,6 +12,14 @@ export const Landing = () => {
     router.push('/deploy');
   };
 
+  const handleBridgeClick = () => {
+    router.push('/bridge');
+  };
+
+  const handleUpgradeClick = () => {
+    router.push('/upgrade');
+  };
+
   return (
     <LandingContainer>
       <TitleSection>
@@ -49,7 +57,7 @@ export const Landing = () => {
           <Typography variant='body1' sx={{ mb: 4, fontSize: '0.95rem' }}>
             Upgrade your existing token with cross-chain features
           </Typography>
-          <ActionButton variant='contained' fullWidth>
+          <ActionButton variant='contained' fullWidth onClick={handleUpgradeClick}>
             Upgrade Token
           </ActionButton>
         </FeatureCard>
@@ -64,7 +72,7 @@ export const Landing = () => {
           <Typography variant='body1' sx={{ mb: 4, fontSize: '0.95rem' }}>
             Connect your xERC20 token to SuperchainTokenBridge
           </Typography>
-          <ActionButton variant='contained' fullWidth>
+          <ActionButton variant='contained' fullWidth onClick={handleBridgeClick}>
             Connect Bridge
           </ActionButton>
         </FeatureCard>

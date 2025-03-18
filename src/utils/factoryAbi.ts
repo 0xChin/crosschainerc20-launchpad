@@ -36,11 +36,59 @@ export const factoryAbi = [
   },
   {
     inputs: [
-      { internalType: 'address', name: '_xerc20', type: 'address' },
-      { internalType: 'address', name: '_bridge', type: 'address' },
+      {
+        internalType: 'address',
+        name: 'xERC20',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: 'bridge',
+        type: 'address',
+      },
     ],
     name: 'deployERC7802Adapter',
-    outputs: [{ internalType: 'address', name: 'erc7802Adapter_', type: 'address' }],
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'string',
+        name: 'name',
+        type: 'string',
+      },
+      {
+        internalType: 'string',
+        name: 'symbol',
+        type: 'string',
+      },
+      {
+        internalType: 'uint8',
+        name: 'decimals',
+        type: 'uint8',
+      },
+      {
+        internalType: 'address',
+        name: 'admin',
+        type: 'address',
+      },
+    ],
+    name: 'deployXERC20',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
     stateMutability: 'nonpayable',
     type: 'function',
   },
