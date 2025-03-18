@@ -15,7 +15,7 @@ export const Footer = () => {
           <SocialLinks>
             <IconButton
               aria-label='GitHub'
-              href='https://github.com/crosschainERC20'
+              href='https://github.com/defi-wonderland/crosschainERC20'
               target='_blank'
               rel='noopener noreferrer'
               size='small'
